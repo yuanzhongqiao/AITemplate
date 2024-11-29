@@ -1,156 +1,125 @@
-# AITemplate
-
-[![License](https://img.shields.io/badge/License-Apache_2.0-brightgreen.svg)](https://github.com/facebookincubator/AITemplate/blob/main/LICENSE) |
-[![Documentation](https://github.com/facebookincubator/AITemplate/actions/workflows/docs.yaml/badge.svg)](https://facebookincubator.github.io/AITemplate) |
-[![CircleCI](https://circleci.com/gh/facebookincubator/AITemplate.svg?style=svg)](https://app.circleci.com/pipelines/github/facebookincubator/AITemplate)
-[![Deploy docs to Pages](https://github.com/facebookincubator/AITemplate/actions/workflows/pages.yaml/badge.svg)](https://github.com/facebookincubator/AITemplate/actions/workflows/pages.yaml)
-
-
-AITemplate (AIT) is a Python framework that transforms deep neural networks into CUDA (NVIDIA GPU) / HIP (AMD GPU) C++ code for lightning-fast inference serving. AITemplate highlights include:
-
-- High performance: close to roofline fp16 TensorCore (NVIDIA GPU) / MatrixCore (AMD GPU) performance on major models, including ResNet, MaskRCNN, BERT, VisionTransformer, Stable Diffusion, etc.
-
-- Unified, open, and flexible. Seamless fp16 deep neural network models for NVIDIA GPU or AMD GPU. Fully open source, Lego-style easily extendable high-performance primitives for new model support. Supports a significantly more comprehensive range of fusions than existing solutions for both GPU platforms.
-
-
-## More about AITemplate
-
-### Excellent Backward Capability
-
-AITemplate doesn't depend on third-party libraries or runtimes, such as cuBLAS, cuDNN, rocBLAS, MIOpen, TensorRT, MIGraphX, etc. Each model is compiled into a self-contained portable binary, which can be used on any software environment with the same hardware.
-
-### Horizontal Fusion
-
-AITemplate provides unique advanced horizontal fusion. AITemplate can fuse parallel GEMM, LayerNorm, and other operators with different input shapes into a single GPU kernel.
-
-### Vertical Fusion
-
-AITemplate provides strong vertical fusion. AITemplate can fuse a large range of operations into TensorCore/MatrixCore operations, such as elementwise operations, reductions, and layout permutations. AITemplate also provides back-to-back style TensorCore / MatrixCore operation fusion.
-
-### Memory Fusion
-
-AITemplate provides innovative memory fusions. AITemplate can fuse GEMM, LayerNorm, and other operators, followed by memory operations such as concatenation, split, and slice into a single operator.
-
-### Working w/wo PyTorch
-
-The AITemplate-generated Python runtime can take PyTorch tensors as inputs and outputs without an extra copy. For environments without PyTorch, the AITemplate Python/C++ runtime is self-contained.
-
-### Extensions without suffering
-
-AITemplate provides a straightforward approach for making an extension in codegen. To add a new operator or a new fused kernel into AITemplate, most of the time one only needs to add two Python files: one for a graph node definition and another for the backend codegen. The CUDA/HIP kernel in a text header file can be directly utilized in the codegen.
-
-
-## FX2AIT
-
-FX2AIT is a Python-based tool that converts PyTorch models into AITemplate (AIT) engine for lightning-fast inference serving. Using FX2AIT's built-in AITLowerer, partial AIT acceleration can be achieved for models with unsupported operators in AITemplate.
-
-Key features of FX2AIT include:
-
-* Easy Conversion: FX2AIT requires only a PyTorch model and input for conversion, generating an "AITModule" output for inference serving.
-* Expanded Support: AITemplate does not support all PyTorch operators. FX2AIT's AITLowerer offers a solution for partial AIT conversion for models with unsupported operators. Check the `fx2ait/fx2ait/example/03_lowering_split` for more information.
-
-More info can be found from https://github.com/facebookincubator/AITemplate/tree/main/fx2ait.
-
-
-## Installation
-
-**Hardware requirements:**
-
-  - **NVIDIA**: AIT is only tested on SM80+ GPUs (Ampere etc). Not all kernels work with old SM75/SM70 (T4/V100) GPUs.
-  - **AMD**:  AIT is only tested on CDNA2 (MI-210/250) GPUs. There may be compiler issues for old CDNA1 (MI-100) GPUs.
-
-### Clone the code
-
-When cloning the code, please use the following command to also clone the submodules:
-```
-git clone --recursive https://github.com/facebookincubator/AITemplate
-```
-
-### Docker Image
-
-We highly recommend using AITemplate with Docker to avoid accidentally using a wrong version of NVCC or HIPCC.
-
-- CUDA: `./docker/build.sh cuda`
-- ROCM: `DOCKER_BUILDKIT=1 ./docker/build.sh rocm`
-
-This will build a docker image with tag `ait:latest`.
-
-### From Source
-
-The following command will create a Python wheel for AITemplate. Please ensure you have correct CUDA/ROCm compiler installed.
-
-- CUDA: CUDA 11.6
-- ROCm: We tested on ROCm 5.2.3 with a customized build HIPCC with the command in docker/Dockerfile.rocm#L87-L96
-
-*Incorrect compiler will lead performance regression.*
-
-**Please check all submodules are cloned correctly before go to next step.**
-
-```
-cd python
+<div class="Box-sc-g0xbh4-0 QkQOb js-snippet-clipboard-copy-unpositioned" data-hpc="true"><article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto" _msttexthash="6636630" _msthash="278">AI 模板</h1><a id="user-content-aitemplate" class="anchor" aria-label="永久链接：AITemplate" href="#aitemplate" _mstaria-label="421343" _msthash="279"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto"><a href="https://github.com/facebookincubator/AITemplate/blob/main/LICENSE"><img src="https://camo.githubusercontent.com/5e0cb8f440049bb0c67b5cf4497735c37d7c87f9829924ed293c0b05082d5d90/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4c6963656e73652d4170616368655f322e302d627269676874677265656e2e737667" alt="许可证" data-canonical-src="https://img.shields.io/badge/License-Apache_2.0-brightgreen.svg" style="max-width: 100%;" _mstalt="93288" _msthash="280"></a><font _mstmutation="1" _msttexthash="24180" _msthash="284">|<a href="https://facebookincubator.github.io/AITemplate" rel="nofollow" _mstmutation="1" _istranslated="1"><img src="https://github.com/facebookincubator/AITemplate/actions/workflows/docs.yaml/badge.svg" alt="文档" style="max-width: 100%;" _mstalt="234962" _msthash="281" _istranslated="1"></a> |</font><a href="https://app.circleci.com/pipelines/github/facebookincubator/AITemplate" rel="nofollow"><img src="https://camo.githubusercontent.com/aa0d4076149f76e7efcdb5012235fbb4144fadd5d8249f15c7272fbcee4c1be2/68747470733a2f2f636972636c6563692e636f6d2f67682f66616365626f6f6b696e63756261746f722f414954656d706c6174652e7376673f7374796c653d737667" alt="圆CI" data-canonical-src="https://circleci.com/gh/facebookincubator/AITemplate.svg?style=svg" style="max-width: 100%;" _mstalt="99034" _msthash="282"></a>
+<a href="https://github.com/facebookincubator/AITemplate/actions/workflows/pages.yaml"><img src="https://github.com/facebookincubator/AITemplate/actions/workflows/pages.yaml/badge.svg" alt="将文档部署到 Pages" style="max-width: 100%;" _mstalt="346892" _msthash="283"></a></p>
+<p dir="auto" _msttexthash="1262125176" _msthash="285">AITemplate （AIT） 是一个 Python 框架，可将深度神经网络转换为 CUDA （NVIDIA GPU） / HIP （AMD GPU） C++ 代码，以实现闪电般快速的推理服务。AITemplate 的亮点包括：</p>
+<ul dir="auto">
+<li>
+<p dir="auto" _msttexthash="486494853" _msthash="286">高性能：主要机型上接近 fp16 TensorCore （NVIDIA GPU） / MatrixCore （AMD GPU） 性能，包括 ResNet、MaskRCNN、BERT、VisionTransformer、Stable Diffusion 等。</p>
+</li>
+<li>
+<p dir="auto" _msttexthash="1795485887" _msthash="287">统一、开放、灵活。适用于 NVIDIA GPU 或 AMD GPU 的无缝 fp16 深度神经网络模型。完全开源的乐高风格、易于扩展的高性能基元，用于新模型支持。与两个 GPU 平台的现有解决方案相比，支持更全面的融合范围。</p>
+</li>
+</ul>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="38546482" _msthash="288">有关 AITemplate 的更多信息</h2><a id="user-content-more-about-aitemplate" class="anchor" aria-label="永久链接：有关 AITemplate 的更多信息" href="#more-about-aitemplate" _mstaria-label="793676" _msthash="289"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="25726493" _msthash="290">出色的后退能力</h3><a id="user-content-excellent-backward-capability" class="anchor" aria-label="Permalink：出色的向后功能" href="#excellent-backward-capability" _mstaria-label="1229462" _msthash="291"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="1673045933" _msthash="292">AITemplate 不依赖于第三方库或运行时，例如 cuBLAS、cuDNN、rocBLAS、MIOpen、TensorRT、MIGraphX 等。每个模型都编译成一个自包含的可移植二进制文件，可以在具有相同硬件的任何软件环境中使用。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="11891893" _msthash="293">水平融合</h3><a id="user-content-horizontal-fusion" class="anchor" aria-label="永久链接：水平融合" href="#horizontal-fusion" _mstaria-label="688168" _msthash="294"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="662787346" _msthash="295">AITemplate 提供独特的高级水平融合。AITemplate 可以将并行 GEMM、LayerNorm 和其他具有不同输入形状的算子融合到单个 GPU 内核中。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="12062167" _msthash="296">垂直融合</h3><a id="user-content-vertical-fusion" class="anchor" aria-label="永久链接：垂直融合" href="#vertical-fusion" _mstaria-label="592969" _msthash="297"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="1263052856" _msthash="298">AITemplate 提供强大的垂直融合。AITemplate 可以将大量操作融合到 TensorCore/MatrixCore 操作中，例如元素运算、归约和布局排列。AITemplate 还提供背靠背风格的 TensorCore / MatrixCore 操作融合。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="11187592" _msthash="299">内存融合</h3><a id="user-content-memory-fusion" class="anchor" aria-label="永久链接：内存融合" href="#memory-fusion" _mstaria-label="518167" _msthash="300"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="544937263" _msthash="301">AITemplate 提供创新的内存融合。AITemplate 可以将 GEMM、LayerNorm 等算子融合，然后进行 concatenation、split、slice 等内存操作。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="23413676" _msthash="302">与 PyTorch 一起工作</h3><a id="user-content-working-wwo-pytorch" class="anchor" aria-label="永久链接：使用 PyTorch 工作" href="#working-wwo-pytorch" _mstaria-label="758485" _msthash="303"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="943681687" _msthash="304">AITemplate 生成的 Python 运行时可以将 PyTorch 张量作为输入和输出，而无需额外的副本。对于没有 PyTorch 的环境，AITemplate Python/C++ 运行时是自包含的。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="20665905" _msthash="305">无痛苦的扩展</h3><a id="user-content-extensions-without-suffering" class="anchor" aria-label="永久链接： 没有痛苦的扩展" href="#extensions-without-suffering" _mstaria-label="1233986" _msthash="306"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="2316264886" _msthash="307">AITemplate 提供了一种在 codegen 中进行扩展的简单方法。要将新运算符或新的融合内核添加到 AITemplate 中，大多数情况下只需要添加两个 Python 文件：一个用于图形节点定义，另一个用于后端 codegen。文本头文件中的 CUDA/HIP 内核可以直接在 codegen 中使用。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="53365" _msthash="308">FX2AIT</h2><a id="user-content-fx2ait" class="anchor" aria-label="永久链接：FX2AIT" href="#fx2ait" _mstaria-label="255970" _msthash="309"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="1704153802" _msthash="310">FX2AIT 是一种基于 Python 的工具，可将 PyTorch 模型转换为 AITemplate （AIT） 引擎，以实现闪电般快速的推理服务。使用 FX2AIT 内置的 AITLowerer，可以为 AITemplate 中不支持的运算符的模型实现部分 AIT 加速。</p>
+<p dir="auto" _msttexthash="55594773" _msthash="311">FX2AIT 的主要功能包括：</p>
+<ul dir="auto">
+<li _msttexthash="411743241" _msthash="312">轻松转换：FX2AIT 只需要一个 PyTorch 模型和输入进行转换，生成“AITModule”输出用于推理服务。</li>
+<li><font _mstmutation="1" _msttexthash="1053599495" _msthash="313">扩展支持：AITemplate 不支持所有 PyTorch 算子。FX2AIT 的 AITLowerer 为具有不支持运算符的模型提供了部分 AIT 转换的解决方案。有关详细信息，请查看 。</font><code>fx2ait/fx2ait/example/03_lowering_split</code></li>
+</ul>
+<p dir="auto" _msttexthash="83599724" _msthash="314">更多信息可以从 <a href="https://github.com/facebookincubator/AITemplate/tree/main/fx2ait" _istranslated="1">https://github.com/facebookincubator/AITemplate/tree/main/fx2ait</a> 找到。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="5773755" _msthash="315">安装</h2><a id="user-content-installation" class="anchor" aria-label="永久链接：安装" href="#installation" _mstaria-label="519259" _msthash="316"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto"><strong _msttexthash="21967699" _msthash="317">硬件要求：</strong></p>
+<ul dir="auto">
+<li _msttexthash="662118015" _msthash="318"><strong _istranslated="1">NVIDIA® （英伟达™</strong>）： AIT 仅在 SM80+ GPU（Ampere 等）上进行了测试。并非所有内核都适用于旧的 SM75/SM70 （T4/V100） GPU。</li>
+<li _msttexthash="519106965" _msthash="319"><strong _istranslated="1">AMD：</strong>AIT 仅在 CDNA2 （MI-210/250） GPU 上进行了测试。旧的 CDNA1 （MI-100） GPU 可能存在编译器问题。</li>
+</ul>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="12257882" _msthash="320">克隆代码</h3><a id="user-content-clone-the-code" class="anchor" aria-label="永久链接：克隆代码" href="#clone-the-code" _mstaria-label="507715" _msthash="321"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="137246317" _msthash="322">克隆代码时，请使用以下命令同时克隆子模块：</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto"><pre class="notranslate"><code>git clone --recursive https://github.com/facebookincubator/AITemplate
+</code></pre><div class="zeroclipboard-container">
+    <clipboard-copy aria-label="Copy" class="ClipboardButton btn btn-invisible js-clipboard-copy m-2 p-0 d-flex flex-justify-center flex-items-center" data-copy-feedback="Copied!" data-tooltip-direction="w" value="git clone --recursive https://github.com/facebookincubator/AITemplate" tabindex="0" role="button">
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon">
+    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+    <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+</svg>
+    </clipboard-copy>
+  </div></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="10302370" _msthash="323">Docker 镜像</h3><a id="user-content-docker-image" class="anchor" aria-label="永久链接：Docker 镜像" href="#docker-image" _mstaria-label="457782" _msthash="324"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="314691234" _msthash="325">我们强烈建议将 AITemplate 与 Docker 一起使用，以避免意外使用错误版本的 NVCC 或 HIPCC。</p>
+<ul dir="auto">
+<li><font _mstmutation="1" _msttexthash="9370101" _msthash="326">CUDA：</font><code>./docker/build.sh cuda</code></li>
+<li><font _mstmutation="1" _msttexthash="9372285" _msthash="327">ROCM：</font><code>DOCKER_BUILDKIT=1 ./docker/build.sh rocm</code></li>
+</ul>
+<p dir="auto"><font _mstmutation="1" _msttexthash="68362827" _msthash="328">这将构建一个带有标签 的 docker 镜像。</font><code>ait:latest</code></p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto" _msttexthash="4779450" _msthash="329">从源</h3><a id="user-content-from-source" class="anchor" aria-label="永久链接：从源" href="#from-source" _mstaria-label="435877" _msthash="330"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="297066393" _msthash="331">以下命令将为 AITemplate 创建一个 Python 轮子。请确保您安装了正确的 CUDA/ROCm 编译器。</p>
+<ul dir="auto">
+<li _msttexthash="9465092" _msthash="332">CUDA：CUDA 11.6</li>
+<li _msttexthash="336904906" _msthash="333">ROCm：我们在 ROCm 5.2.3 上使用自定义构建 HIPCC 和 docker/Dockerfile.rocm#L87-L96 中的命令进行了测试</li>
+</ul>
+<p dir="auto"><em _msttexthash="70361460" _msthash="334">不正确的编译器将导致性能回归。</em></p>
+<p dir="auto"><strong _msttexthash="165138896" _msthash="335">在进行下一步之前，请检查所有子模块是否已正确克隆。</strong></p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto"><pre class="notranslate"><code>cd python
 python setup.py bdist_wheel
 pip install dist/*.whl --force-reinstall
-```
-
-## Getting Started
-
-Check out the [AITemplate Documentation](https://facebookincubator.github.io/AITemplate) for API reference.
-
-There are a few tutorials for onboarding:
-
-- 01: [How to inference a PyTorch model with AIT](https://facebookincubator.github.io/AITemplate/tutorial/how_to_infer_pt.html)
-- 02: [How to add an op to AIT codegen](https://facebookincubator.github.io/AITemplate/tutorial/how_to_add_op.html)
-- 03: [How to visualize AIT's optimization](https://facebookincubator.github.io/AITemplate/tutorial/how_to_visualize.html)
-
-
-## Examples & Performance
-
-AITemplate provides the following model templates & reference performance data on A100/MI-250:
-
-- [01_ResNet-50](examples/01_resnet-50/) with PyTorch Image Models (TIMM)
-- [02_MaskRCNN-FPN](examples/02_detectron2/) with Detectron2
-- [03_BERT](examples/03_bert/) with Hugging Face Transformer
-- [04_Vision Transformer](examples/04_vit/) with PyTorch Image Models (TIMM)
-- [05_Stable Diffusion](examples/05_stable_diffusion/) with Hugging Face Diffusers
-
-
-## Release
-
-All current development updates can be seen in the AITemplate repository. Releases are not on a set schedule and will only be tagged for significant feature releases.
-
-Mid-term plan:
-
-- Better dynamic shape support: Focus on the dynamic sequence in Transformers. Add symbolic shape support.
-- More automatic graph passes: Relief manual rewrite models to obtain the best performance.
-- Quantization: fp8/int8/int4.
-- Sparsity pruning for Gemm.
-- PT2 integration: Aten2AIT is under active development.
-
-Long-term plan:
-
-- Automatic ONNX, Open-XLA and other format model conversion.
-- Composable Kernel CPU extension on AVX2/AVX-512 for AMD Epyc CPU.
-
-
-## Contributing
-
-Check our [contributing guide](CONTRIBUTING.md) to learn about how to contribute to the project.
-
-
-## The Team
-
-AITemplate is currently maintained by Meta engineers: [Ying Zhang](https://github.com/ipiszy), [Yang Chen](https://github.com/chenyang78), [Terry Chen](https://github.com/terrychenism), [Mu-Chu Lee](https://github.com/muchulee8), [Max Podkorytov](https://github.com/tenpercent), [Adnan Akhundov](https://github.com/aakhundov).
-
-AITemplate is co-created by Meta engineers: [Bing Xu](https://github.com/antinucleon), [Ying Zhang](https://github.com/ipiszy), [Hao Lu](https://github.com/hlu1), [Yang Chen](https://github.com/chenyang78), and [Terry Chen](https://github.com/terrychenism), with major contributions coming from other talented engineers. A non-exhaustive list to mention is Mike Iovine, Mu-Chu Lee, Scott Wolchok, Oleg Khabinov, Shirong Wu, Huamin Li, Hui Guo, Zhijing Li, Max Podkorytov. We also want to thank Andrew Tulloch, Yinghai Lu, Lu Fang for the valuable discussions.
-
-FX2AIT and Aten2AIT are co-created and maintained by Meta engineers: [Wei Wei](https://github.com/frank-wei), [Shirong Wu](https://github.com/wushirong) and [Zhijing Li](https://github.com/tissue3).
-
-
-## Acknowledgements
-
-AITemplate team works closely with NVIDIA [CUTLASS](https://github.com/NVIDIA/cutlass) Team (led by Andrew Kerr, Haicheng Wu) and AMD [Composable Kernel](https://github.com/ROCmSoftwarePlatform/composable_kernel) Team (led by Chao Liu, Jing Zhang). We co-designed many advanced GPU optimizations specialized for each platform, and nothing is possible without our close collaboration.
-
-
-## License
-
-AITemplate is licensed under the [Apache 2.0 License](https://github.com/facebookincubator/AITemplate/blob/main/LICENSE).
+</code></pre><div class="zeroclipboard-container">
+    <clipboard-copy aria-label="Copy" class="ClipboardButton btn btn-invisible js-clipboard-copy m-2 p-0 d-flex flex-justify-center flex-items-center" data-copy-feedback="Copied!" data-tooltip-direction="w" value="cd python
+python setup.py bdist_wheel
+pip install dist/*.whl --force-reinstall" tabindex="0" role="button">
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon">
+    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+    <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+</svg>
+    </clipboard-copy>
+  </div></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="4603768" _msthash="336">开始</h2><a id="user-content-getting-started" class="anchor" aria-label="永久链接： 开始使用" href="#getting-started" _mstaria-label="591461" _msthash="337"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="64865281" _msthash="338">查看 <a href="https://facebookincubator.github.io/AITemplate" rel="nofollow" _istranslated="1">AITemplate 文档</a>以获取 API 参考。</p>
+<p dir="auto" _msttexthash="36241127" _msthash="339">有一些入门教程：</p>
+<ul dir="auto">
+<li _msttexthash="51662689" _msthash="340">01： <a href="https://facebookincubator.github.io/AITemplate/tutorial/how_to_infer_pt.html" rel="nofollow" _istranslated="1">如何使用 AIT 推理 PyTorch 模型</a></li>
+<li _msttexthash="32068738" _msthash="341">02： <a href="https://facebookincubator.github.io/AITemplate/tutorial/how_to_add_op.html" rel="nofollow" _istranslated="1">如何将 op 添加到 AIT codegen</a></li>
+<li _msttexthash="44394662" _msthash="342">03： <a href="https://facebookincubator.github.io/AITemplate/tutorial/how_to_visualize.html" rel="nofollow" _istranslated="1">如何可视化 AIT 的优化</a></li>
+</ul>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="15396147" _msthash="343">示例和性能</h2><a id="user-content-examples--performance" class="anchor" aria-label="永久链接：示例和性能" href="#examples--performance" _mstaria-label="1035021" _msthash="344"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="206689249" _msthash="345">AITemplate提供了以下模型模板和A100/MI-250的参考性能数据：</p>
+<ul dir="auto">
+<li _msttexthash="96631093" _msthash="346"><a href="/facebookincubator/AITemplate/blob/main/examples/01_resnet-50" _istranslated="1">01_ResNet-50</a> 与 PyTorch 图像模型 （TIMM）</li>
+<li _msttexthash="9846629" _msthash="347">带 Detectron2 的 <a href="/facebookincubator/AITemplate/blob/main/examples/02_detectron2" _istranslated="1">02_MaskRCNN-FPN</a></li>
+<li _msttexthash="4457284" _msthash="348"><a href="/facebookincubator/AITemplate/blob/main/examples/03_bert" _istranslated="1">03_BERT</a> 与 Hugging Face Transformer</li>
+<li _msttexthash="108860544" _msthash="349">带有 PyTorch 图像模型的 <a href="/facebookincubator/AITemplate/blob/main/examples/04_vit" _istranslated="1">04_Vision Transformer</a> （TIMM）</li>
+<li _msttexthash="1392378" _msthash="350"><a href="/facebookincubator/AITemplate/blob/main/examples/05_stable_diffusion" _istranslated="1">05_Stable Diffusion</a> with Hugging Face Differs</li>
+</ul>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="6091774" _msthash="351">释放</h2><a id="user-content-release" class="anchor" aria-label="永久链接： Release" href="#release" _mstaria-label="330967" _msthash="352"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="643680427" _msthash="353">所有当前的开发更新都可以在 AITemplate 存储库中看到。版本不按固定的计划进行，只会针对重要功能版本进行标记。</p>
+<p dir="auto" _msttexthash="20818902" _msthash="354">中期计划：</p>
+<ul dir="auto">
+<li _msttexthash="249510560" _msthash="355">更好的动态形状支持：专注于 Transformer 中的动态序列。添加符号形状支持。</li>
+<li _msttexthash="166138323" _msthash="356">更多自动图形传递：缓解手动重写模型以获得最佳性能。</li>
+<li _msttexthash="17159441" _msthash="357">量化：fp8/int8/int4。</li>
+<li _msttexthash="24735269" _msthash="358">Gemm 的稀疏修剪。</li>
+<li _msttexthash="77099230" _msthash="359">PT2 集成：Aten2AIT 正在积极开发中。</li>
+</ul>
+<p dir="auto" _msttexthash="22480380" _msthash="360">长期计划：</p>
+<ul dir="auto">
+<li _msttexthash="89530480" _msthash="361">自动 ONNX、Open-XLA 和其他格式模型转换。</li>
+<li _msttexthash="133567200" _msthash="362">AVX2/AVX-512 上适用于 AMD Epyc CPU 的可组合内核 CPU 扩展。</li>
+</ul>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="6354283" _msthash="363">贡献</h2><a id="user-content-contributing" class="anchor" aria-label="永久链接： 贡献" href="#contributing" _mstaria-label="521066" _msthash="364"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="138115887" _msthash="365">查看我们的<a href="/facebookincubator/AITemplate/blob/main/CONTRIBUTING.md" _istranslated="1">贡献指南</a>，了解如何为项目做出贡献。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="6020846" _msthash="366">团队</h2><a id="user-content-the-team" class="anchor" aria-label="永久链接： 团队" href="#the-team" _mstaria-label="324298" _msthash="367"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="157822067" _msthash="368">AITemplate 目前由 Meta 工程师维护：<a href="https://github.com/ipiszy" _istranslated="1">Ying Zhang</a>、<a href="https://github.com/chenyang78" _istranslated="1">Yang Chen</a>、<a href="https://github.com/terrychenism" _istranslated="1">Terry Chen</a>、<a href="https://github.com/muchulee8" _istranslated="1">Mu-Chu Lee</a>、<a href="https://github.com/tenpercent" _istranslated="1">Max Podkorytov</a>、<a href="https://github.com/aakhundov" _istranslated="1">Adnan Akhundov</a>。</p>
+<p dir="auto" _msttexthash="1969586086" _msthash="369">AITemplate 由 Meta 工程师共同创建：徐<a href="https://github.com/antinucleon" _istranslated="1">兵</a>、<a href="https://github.com/ipiszy" _istranslated="1">张英</a>、<a href="https://github.com/hlu1" _istranslated="1">璐浩</a>、<a href="https://github.com/chenyang78" _istranslated="1">陈阳</a>和 <a href="https://github.com/terrychenism" _istranslated="1">Terry Chen</a>，其他才华横溢的工程师也做出了重大贡献。值得一提的是 Mike Iovine、Mu-Chu Lee、Scott Wolchok、Oleg Khabinov、Shirong Wu、Huamin Li、Hui Guo、Zhijing Li、Max Podkorytov。我们还要感谢 Andrew Tulloch、Yinghai Lu 和 Lu Fang 的宝贵讨论。</p>
+<p dir="auto" _msttexthash="200182840" _msthash="370">FX2AIT 和 Aten2AIT 由 <a href="https://github.com/frank-wei" _istranslated="1">Meta 工程师 Wei</a> Wei、<a href="https://github.com/wushirong" _istranslated="1">Shirong Wu</a> 和 <a href="https://github.com/tissue3" _istranslated="1">Zhijing Li</a> 共同创建和维护。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="6523322" _msthash="371">确认</h2><a id="user-content-acknowledgements" class="anchor" aria-label="永久链接： 致谢" href="#acknowledgements" _mstaria-label="685412" _msthash="372"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="2482496718" _msthash="373">AITemplate 团队与 NVIDIA <a href="https://github.com/NVIDIA/cutlass" _istranslated="1">CUTLASS</a> 团队（由 Andrew Kerr 和 Haicheng Wu 领导）和 AMD <a href="https://github.com/ROCmSoftwarePlatform/composable_kernel" _istranslated="1">可组合内核</a>团队（由 Chao Liu 和 Jing Zhang 领导）密切合作。我们共同设计了许多专门用于每个平台的高级 GPU 优化，没有我们的密切合作，一切都不可能。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto" _msttexthash="9675445" _msthash="374">许可证</h2><a id="user-content-license" class="anchor" aria-label="永久链接：许可证" href="#license" _mstaria-label="331903" _msthash="375"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto" _msttexthash="101488569" _msthash="376">AITemplate 根据 <a href="https://github.com/facebookincubator/AITemplate/blob/main/LICENSE" _istranslated="1">Apache 2.0 许可证</a>获得许可。</p>
+</article></div>
